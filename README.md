@@ -3,7 +3,7 @@
 **rent-o-matic** is a small personal automation project to generate rent invoices using  
 **Google Sheets + Google Apps Script**, designed for real-world use by small landlords.
 
-It started as a personal tool and grew into a clean, modular Apps Script project,
+It started as a personal tool and evolved into a clean, modular Apps Script project,
 now versioned with Git and synced via `clasp`.
 
 ---
@@ -23,24 +23,24 @@ now versioned with Git and synced via `clasp`.
 
 ---
 
-## 🧠 Project structure
+## 🧩 Code structure
 
-The codebase is intentionally split by domain:
+The codebase is intentionally split by domain to keep responsibilities clear and
+the project easy to reason about:
+
+src/
+├── Config.js # Global configuration and constants
+├── Panel.js # Main panel access and input handling
+├── Tenants.js # Tenant lookup and data access
+├── Taxes.js # VAT and withholding logic
+├── Invoice.js # Invoice generation logic
+├── Drive.js # Google Drive helpers
+├── UI.js # Dialogs and user-facing UI
+└── Utils.js # Small shared utilities
 
 
 The original monolithic implementation existed in the early stages of the project
 and is preserved in Git history for reference.
-
-## 🧩 Code structure
-
-- Config.js   – Global configuration and constants.
-- Panel.js    – Main panel access and input handling.
-- Tenants.js  – Tenant lookup and data access.
-- Taxes.js    – VAT and withholding logic.
-- Invoice.js  – Invoice generation logic.
-- Drive.js    – Drive / file / folder helpers.
-- UI.js       – Dialogs and UI helpers.
-- Utils.js    – Small shared utilities.
 
 ---
 
@@ -72,19 +72,20 @@ and is preserved in Git history for reference.
 
 ## 🔐 Configuration & secrets
 
-This repository **does not include**:
+This repository intentionally **does not include**:
+
 - `.clasp.json`
 - spreadsheet IDs
-- Drive folder IDs
+- Google Drive folder IDs
 
-Those are intentionally excluded and must be provided per deployment.
+Those values are environment-specific and must be provided per deployment.
 
 ---
 
 ## 📦 Status
 
 This is a **working, real-life tool**, not a polished SaaS product.
-The focus is on clarity, maintainability and correctness.
+The focus is on clarity, maintainability and correctness rather than feature breadth.
 
 Contributions, suggestions and forks are welcome.
 
@@ -92,6 +93,5 @@ Contributions, suggestions and forks are welcome.
 
 ## 📄 License
 
-TBD (likely MIT).
-
+MIT.
 
