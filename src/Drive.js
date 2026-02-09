@@ -1,5 +1,7 @@
+import { CONFIG } from './Config';
+
 function getTenantFolder(tenantId) {
-  const root = DriveApp.getFolderById(INVOICES_FOLDER_ID);
+  const root = DriveApp.getFolderById(CONFIG.INVOICES_FOLDER_ID);
   const prefix = String(tenantId).padStart(3, "0") + " ";
 
   const folders = root.getFolders();

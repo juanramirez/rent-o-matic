@@ -72,6 +72,11 @@ and is preserved in Git history for reference.
 
 ## 🔐 Configuration & secrets
 
+This project requires environment-specific Google Drive and Sheets IDs.
+
+Copy `Config.example.js` to `Config.js` and fill in your own values.
+The `Config.js` file is intentionally excluded from version control.
+
 This repository intentionally **does not include**:
 
 - `.clasp.json`
