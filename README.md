@@ -31,6 +31,17 @@ The codebase is intentionally split by domain:
 The original monolithic implementation existed in the early stages of the project
 and is preserved in Git history for reference.
 
+## 🧩 Code structure
+
+- Config.js   – Global configuration and constants.
+- Panel.js    – Main panel access and input handling.
+- Tenants.js  – Tenant lookup and data access.
+- Taxes.js    – VAT and withholding logic.
+- Invoice.js  – Invoice generation logic.
+- Drive.js    – Drive / file / folder helpers.
+- UI.js       – Dialogs and UI helpers.
+- Utils.js    – Small shared utilities.
+
 ---
 
 ## 🚀 How it works (high level)
