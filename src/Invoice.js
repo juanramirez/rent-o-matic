@@ -1,4 +1,8 @@
-// Invoice.gs
+import { createInvoiceFromTemplate } from './Drive';
+import { getDefaultVat } from './Taxes';
+import { getTenantShortNameById } from './Tenants';
+import { monthToNumber } from './Utils';
+
 function generateInvoice() {
   const panel = getMainPanelSheet();
   const ss = getPanelSpreadsheet();
@@ -30,8 +34,17 @@ function generateInvoice() {
   const headers = tenantData[0];
   const idxId = headers.indexOf("ID");
   const idxBase = headers.indexOf("Base (€)");
+  const idxShortName = headers.indexOf("Short Name");
 
-  const tenantRow = tenantData.find(r => Number(r[idxId]) === tenantId);
+  const tenantRow = tenantData.find(
+    r => Number(r[idxId]) === tenantId
+  );
+
+  if (!tenantRow) {
+    SpreadsheetApp.getUi().alert("No se ha encontrado el inquilino.");
+    return;
+  }
+
   const baseAmount = Number(tenantRow[idxBase]) || 0;
 
   // extras
@@ -54,7 +67,8 @@ function generateInvoice() {
   const invoiceName = `${shortName} ${year}-${monthToNumber(month)}`;
   const invoiceSpreadsheet = createInvoiceFromTemplate({
     invoiceName,
-    tenantId
+    tenantId,
+    shortName
   });
 
   const url = invoiceSpreadsheet.getUrl();
