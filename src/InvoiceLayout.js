@@ -84,7 +84,8 @@ function setupInvoiceLayout(sheet) {
     .setFontWeight('bold')
     .setWrap(true)
     .setVerticalAlignment('top')
-    .setHorizontalAlignment('left');
+    .setHorizontalAlignment('left')
+    .setValue(concept.name);
 
   // --- Periodo ---
   sheet.getRange('C15:G15')
@@ -96,7 +97,7 @@ function setupInvoiceLayout(sheet) {
   // --- Base imponible ---
   sheet.getRange('C17:F17')
     .merge()
-    .setValue('Base imponible')
+    .setValue(concept.name)
     .setHorizontalAlignment('left');
 
   sheet.getRange('G17')
@@ -167,4 +168,12 @@ function fillInvoiceData(sheet, data, invoiceId) {
   // Snapshot fiscal values (copied from panel at creation time)
   sheet.getRangeByName('VAT_PERCENT').setValue(data.vatPercent);
   sheet.getRangeByName('IRPF_PERCENT').setValue(data.irpfPercent);
+}
+
+function generateInvoicePdf(context, calculated) {
+  const lines = calculated.lines;
+  const totals = calculated.totals;
+
+  // pintar líneas
+  // pintar totales
 }

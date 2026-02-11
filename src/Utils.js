@@ -7,6 +7,19 @@ function monthToNumber(month) {
   return map[month];
 }
 
+function parseEuroNumber_(value) {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  return Number(
+    String(value)
+      .replace(/\./g, '')     // quitar separador de miles
+      .replace(',', '.')      // convertir decimal europeo
+      .replace(/[^\d.]/g, '') // quitar €
+  );
+}
+
 function roundCurrency(value) {
   return Math.round(value * 100) / 100;
 }

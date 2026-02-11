@@ -15,6 +15,13 @@ function createInvoiceFromPanel() {
   */
 }
 
+function createInvoice() {
+  const context = readBillingContext();
+  const calculated = calculateInvoiceTotals(context);
+
+  generateInvoicePdf(context, calculated);
+}
+
 function generateInvoiceSpreadsheet(data) {
   const ss = SpreadsheetApp.create('Invoice (preview)');
   const sheet = ss.getActiveSheet();

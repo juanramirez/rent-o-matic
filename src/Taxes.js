@@ -24,3 +24,61 @@ function getDefaultWithholding() {
   }
   return value;
 }
+
+function roundMoney(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function calculateInvoiceTotals(context) {
+  const vatDefault = getDefaultVat();
+  const withholdingDefault = getDefaultWithholding();
+
+  const lines = [];
+
+  let baseTotal = 0;
+  let vatTotal = 0;
+  let withholdingTotal = 0;
+
+  context.concepts.forEach(concept => {
+    const base = roundMoney(concept.amount);
+
+    const vatRate = concept.appliesVat
+      ? (concept.vatRate ?? vatDefault)
+      : 0;
+
+    const withholdingRate = concept.appliesWithholding
+      ? (concept.withholdingRate ?? withholdingDefault)
+      : 0;
+
+    const vat = roundMoney(base * vatRate);
+    const withholding = roundMoney(base * withholdingRate);
+    const total = roundMoney(base + vat - withholding);
+
+    baseTotal += base;
+    vatTotal += vat;
+    withholdingTotal += withholding;
+
+    lines.push({
+      name: concept.name,
+      description: concept.description,
+      base,
+      vat,
+      withholding,
+      total
+    });
+  });
+
+  baseTotal = roundMoney(baseTotal);
+  vatTotal = roundMoney(vatTotal);
+  withholdingTotal = roundMoney(withholdingTotal);
+
+  return {
+    lines,
+    totals: {
+      base: baseTotal,
+      vat: vatTotal,
+      withholding: withholdingTotal,
+      grandTotal: roundMoney(baseTotal + vatTotal - withholdingTotal)
+    }
+  };
+}
