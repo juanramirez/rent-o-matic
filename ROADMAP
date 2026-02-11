@@ -1,0 +1,5 @@
+- Extract panel structure into code (PanelBuilder). -
+- Add fiscal identifier to invoice layout.
+- Extract tenant list to a JSON.
+- Localization (i18n).
+- Tests
