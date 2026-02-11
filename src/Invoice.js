@@ -1,84 +1,26 @@
-import { createInvoiceFromTemplate } from './Drive';
-import { getDefaultVat } from './Taxes';
-import { getTenantShortNameById } from './Tenants';
-import { monthToNumber } from './Utils';
+function createInvoiceFromPanel() {
+  const data = readBillingPanel();
+  const invoiceId = buildInvoiceIdentifier(data.invoiceDate);
+  
+  const spreadsheet = SpreadsheetApp.create('Invoice (preview)');
+  const sheet = spreadsheet.getActiveSheet();
 
-function generateInvoice() {
-  const panel = getMainPanelSheet();
-  const ss = getPanelSpreadsheet();
+  setupInvoiceLayout(sheet);
+  fillInvoiceData(sheet, data, invoiceId);
 
-  const tenantsSheet = ss.getSheetByName("Inquilinos");
-  const extrasSheet = ss.getSheetByName("Conceptos extra");
+  SpreadsheetApp.setActiveSpreadsheet(spreadsheet);
+  /*
+  const invoice = generateInvoiceSpreadsheet(data);
+  SpreadsheetApp.setActiveSpreadsheet('Invoice (preview)');
+  */
+}
 
-  if (!tenantsSheet || !extrasSheet) {
-    SpreadsheetApp.getUi().alert(
-      "Faltan hojas necesarias (Inquilinos o Conceptos extra)."
-    );
-    return;
-  }
+function generateInvoiceSpreadsheet(data) {
+  const ss = SpreadsheetApp.create('Invoice (preview)');
+  const sheet = ss.getActiveSheet();
 
-  const tenantSelection = panel.getRange("panel_inquilino").getValue();
-  const month = panel.getRange("panel_mes").getValue();
-  const year = panel.getRange("panel_ano").getValue();
+  setupInvoiceLayout(sheet);
+  fillInvoiceData(sheet, data);
 
-  if (!tenantSelection || !month || !year) {
-    SpreadsheetApp.getUi().alert("Selecciona inquilino, mes y año.");
-    return;
-  }
-
-  const tenantId = Number(String(tenantSelection).split("-")[0].trim());
-  const shortName = getTenantShortNameById(tenantId);
-
-  // base
-  const tenantData = tenantsSheet.getDataRange().getValues();
-  const headers = tenantData[0];
-  const idxId = headers.indexOf("ID");
-  const idxBase = headers.indexOf("Base (€)");
-  const idxShortName = headers.indexOf("Short Name");
-
-  const tenantRow = tenantData.find(
-    r => Number(r[idxId]) === tenantId
-  );
-
-  if (!tenantRow) {
-    SpreadsheetApp.getUi().alert("No se ha encontrado el inquilino.");
-    return;
-  }
-
-  const baseAmount = Number(tenantRow[idxBase]) || 0;
-
-  // extras
-  const extrasData = extrasSheet.getDataRange().getValues().slice(1);
-  let extrasWithVat = 0;
-  let extrasWithoutVat = 0;
-
-  extrasData.forEach(([m, y, tId, , amount, applyVat]) => {
-    if (m === month && y === year && Number(tId) === tenantId) {
-      const v = Number(amount) || 0;
-      applyVat === "Sí" ? extrasWithVat += v : extrasWithoutVat += v;
-    }
-  });
-
-  const vatRate = getDefaultVat();
-  const taxableBase = baseAmount + extrasWithVat;
-  const vatAmount = taxableBase * vatRate;
-  const total = taxableBase + vatAmount;
-
-  const invoiceName = `${shortName} ${year}-${monthToNumber(month)}`;
-  const invoiceSpreadsheet = createInvoiceFromTemplate({
-    invoiceName,
-    tenantId,
-    shortName
-  });
-
-  const url = invoiceSpreadsheet.getUrl();
-  ss.getRangeByName("panel_last_invoice_url").setValue(url);
-
-  showInvoiceSummaryDialog({
-    shortName,
-    month,
-    year,
-    total,
-    url
-  });
+  return ss;
 }

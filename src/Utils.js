@@ -7,3 +7,6 @@ function monthToNumber(month) {
   return map[month];
 }
 
+function roundCurrency(value) {
+  return Math.round(value * 100) / 100;
+}

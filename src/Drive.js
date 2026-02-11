@@ -1,13 +1,11 @@
-import { CONFIG } from './Config';
-
 /**
  * Returns the Drive folder for a tenant.
  * Creates it if it does not exist.
  *
  * Folder name format: "001 ACME Corp"
  */
-export function getTenantFolder(tenantId, shortName) {
-  const root = DriveApp.getFolderById(CONFIG.INVOICES_FOLDER_ID);
+function getTenantFolder(tenantId, shortName) {
+  const root = DriveApp.getFolderById(Config.INVOICES_FOLDER_ID);
 
   const prefix = String(tenantId).padStart(3, '0');
   const folderName = `${prefix} ${shortName}`;
@@ -26,8 +24,8 @@ export function getTenantFolder(tenantId, shortName) {
  * Creates a new invoice spreadsheet from the template
  * inside the tenant folder.
  */
-export function createInvoiceFromTemplate({ invoiceName, tenantId, shortName }) {
-  const template = DriveApp.getFileById(CONFIG.INVOICE_TEMPLATE_ID);
+function createInvoiceFromTemplate({ invoiceName, tenantId, shortName }) {
+  const template = DriveApp.getFileById(Config.INVOICE_TEMPLATE_ID);
   const tenantFolder = getTenantFolder(tenantId, shortName);
 
   const file = template.makeCopy(invoiceName, tenantFolder);
