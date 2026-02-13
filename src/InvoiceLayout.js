@@ -88,11 +88,11 @@ function setupInvoiceLayout(sheet) {
     .setValue(concept.name);
 
   // --- Periodo ---
-  sheet.getRange('C15:G15')
-    .merge()
-    .setName('PERIOD')
-    .setFontWeight('bold')
-    .setHorizontalAlignment('center');
+  const periodRange = sheet.getRange('C15:G15');
+  periodRange.merge();
+  periodRange.setName('PERIOD');
+  periodRange.setFontWeight('bold');
+  periodRange.setHorizontalAlignment('center');
 
   // --- Base imponible ---
   sheet.getRange('C17:F17')
@@ -184,7 +184,6 @@ function generateInvoicePdf(context, calculated) {
   // Lines
   lines.forEach(line => {
     sheet.getRange(`C${currentRow}:F${currentRow}`)
-      .merge()
       .setValue(line.description || line.name);
 
     sheet.getRange(`G${currentRow}`)
