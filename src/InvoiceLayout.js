@@ -3,13 +3,27 @@
  * Uses formulas for amounts so the document remains manually editable.
  */
 
+const FIRST_CONCEPT_ROW = 17; // Row where the first concept line is rendered (base amount row)
+const VAT_ROW_OFFSET = 1; // Number of rows between base amount and VAT calculation
+const WITHHOLDING_ROW_OFFSET = 2; // Number of rows between base amount and withholding calculation
+const TOTAL_ROW_OFFSET = 4; // Number of rows between base amount and grand total
+
+const VAT_ROW = FIRST_CONCEPT_ROW + VAT_ROW_OFFSET;
+const WITHHOLDING_ROW = FIRST_CONCEPT_ROW + WITHHOLDING_ROW_OFFSET;
+const TOTAL_ROW = FIRST_CONCEPT_ROW + TOTAL_ROW_OFFSET;
+
+const BASE_COLUMN = 'G'; // Column where base amount is rendered (used as anchor for formulas)
+const PERCENTAGE_COLUMN = 'C'; // Column where VAT and withholding percentages are rendered (used as anchor for formulas)
+
 /**
- * Creates the full layout (structure + styles).
+ * Renders the canonical invoice layout in the given sheet.
+ * Fiscal amounts are calculated via formulas,
+ * so the document remains manually editable after generation.
  */
 function setupInvoiceLayout(sheet) {
   sheet.setName('Factura');
 
-  // --- Column widths (match the original spacing) ---
+  // Layout grid configuration (matches canonical spacing)
   sheet.setColumnWidths(1, 1, 30);   // A (left margin)
   sheet.setColumnWidths(2, 1, 30);   // B
   sheet.setColumnWidths(3, 1, 120);  // C
@@ -23,31 +37,37 @@ function setupInvoiceLayout(sheet) {
   sheet.setColumnWidths(11, 1, 80);  // K
   sheet.setColumnWidths(12, 1, 80);  // L
 
-  // --- Emisor (fixed text / config-driven later) ---
+  // Issuer block (currently static, will become configurable)
   sheet.getRange('C4')
     .setValue('Pepito Pérez Jiménez - NIF 42494684H')
     .setHorizontalAlignment('left');
 
-  // --- Número ---
-  sheet.getRange('C7:D7')
-    .merge()
-    .setValue('Número:')
-    .setHorizontalAlignment('left');
+  // Invoice number label
+  const numberRange = sheet.getRange('C7:D7');
+  numberRange.merge();
+  numberRange.setValue('Número:');
+  numberRange.setHorizontalAlignment('left');
 
+  // Invoice identifier (merged to support long numbering schemes)
+  const invoiceIdRange = sheet.getRange('E7:F7');
+  invoiceIdRange.merge();
+  invoiceIdRange.setName('INVOICE_ID');
+  invoiceIdRange.setFontWeight('bold');
+  invoiceIdRange.setHorizontalAlignment('left');
   sheet.getRange('E7:F7')
     .merge()
     .setName('INVOICE_ID')
     .setFontWeight('bold')
     .setHorizontalAlignment('left');
 
-  // --- Inquilino ---
+  // Tenant
   sheet.getRange('H7:L7')
     .merge()
     .setName('TENANT_NAME')
     .setFontWeight('bold')
     .setHorizontalAlignment('left');
 
-  // --- Fecha ---
+  // Invoice date
   sheet.getRange('C9:D9')
     .merge()
     .setValue('Fecha:')
@@ -60,7 +80,7 @@ function setupInvoiceLayout(sheet) {
     .setNumberFormat('dd/MM/yyyy')
     .setHorizontalAlignment('left');
 
-  // --- Dirección ---
+  // Tenant address
   sheet.getRange('H9')
     .setValue('Dirección:')
     .setHorizontalAlignment('left');
@@ -71,7 +91,7 @@ function setupInvoiceLayout(sheet) {
     .setFontWeight('bold')
     .setHorizontalAlignment('left');
 
-  // --- Concepto ---
+  // Main concept section (multi-line, wrapped)
   sheet.getRange('C11:D12')
     .merge()
     .setValue('Concepto:')
@@ -87,73 +107,75 @@ function setupInvoiceLayout(sheet) {
     .setHorizontalAlignment('left')
     .setValue(concept.name);
 
-  // --- Periodo ---
+  // Billing period
   const periodRange = sheet.getRange('C15:G15');
   periodRange.merge();
   periodRange.setName('PERIOD');
   periodRange.setFontWeight('bold');
   periodRange.setHorizontalAlignment('center');
 
-  // --- Base imponible ---
-  sheet.getRange('C17:F17')
+  // Taxable base (anchor row for fiscal formulas)
+  sheet.getRange(`C${FIRST_CONCEPT_ROW}:F${FIRST_CONCEPT_ROW}`)
     .merge()
     .setValue(concept.name)
     .setHorizontalAlignment('left');
 
-  sheet.getRange('G17')
+  sheet.getRange(`${BASE_COLUMN}${FIRST_CONCEPT_ROW}`)
     .setName('BASE_AMOUNT')
     .setNumberFormat('#,##0.00 €')
     .setHorizontalAlignment('right');
 
-  // --- IVA ---
-  sheet.getRange('C18')
+  // VAT calculation (base x VAT_PERCENT)
+  sheet.getRange(`${PERCENTAGE_COLUMN}${VAT_ROW}`)
     .setName('VAT_PERCENT')
     .setHorizontalAlignment('right');
 
-  sheet.getRange('D18')
+  sheet.getRange(`${PERCENTAGE_COLUMN}${VAT_ROW}`)
     .setValue('IVA')
     .setHorizontalAlignment('left');
 
-  sheet.getRange('G18')
+  sheet.getRange(`${BASE_COLUMN}${VAT_ROW}`)
     .setName('VAT_AMOUNT')
     .setNumberFormat('#,##0.00 €')
     .setHorizontalAlignment('right')
-    .setFormula('=G17*C18');
+    .setFormula(`=G${FIRST_CONCEPT_ROW}*C${VAT_ROW}`);
 
-  // --- IRPF ---
-  sheet.getRange('C19')
+  // Withholding (IRPF) calculation (negative value)
+  sheet.getRange(`${PERCENTAGE_COLUMN}${WITHHOLDING_ROW}`)
     .setName('IRPF_PERCENT')
     .setHorizontalAlignment('right');
 
-  sheet.getRange('D19')
+  sheet.getRange(`${PERCENTAGE_COLUMN}${WITHHOLDING_ROW}`)
     .setValue('Retención IRPF')
     .setHorizontalAlignment('left');
 
-  sheet.getRange('G19')
+  sheet.getRange(`${BASE_COLUMN}${WITHHOLDING_ROW}`)
     .setName('IRPF_AMOUNT')
     .setNumberFormat('#,##0.00 €')
     .setHorizontalAlignment('right')
-    .setFormula('=-G17*C19');
+    .setFormula(`=-G${FIRST_CONCEPT_ROW}*C${WITHHOLDING_ROW}`);
 
-  // --- TOTAL ---
-  sheet.getRange('C21:F21')
+  // Grand total (base + VAT - withholding)
+  sheet.getRange(`${BASE_COLUMN}${TOTAL_ROW}:F${TOTAL_ROW}`)
     .merge()
     .setValue('TOTAL')
     .setFontWeight('bold')
     .setHorizontalAlignment('left')
     .setBorder(true, false, false, false, false, false);
 
-  sheet.getRange('G21')
+  sheet.getRange(`${BASE_COLUMN}${TOTAL_ROW}`)
     .setName('TOTAL_AMOUNT')
     .setFontWeight('bold')
     .setNumberFormat('#,##0.00 €')
     .setHorizontalAlignment('right')
     .setBorder(true, false, false, false, false, false)
-    .setFormula('=SUM(G17:G19)');
+    .setFormula(`=SUM(${BASE_COLUMN}${FIRST_CONCEPT_ROW}:${BASE_COLUMN}${WITHHOLDING_ROW})`);
 }
 
 /**
- * Fills the invoice with data and snapshots fiscal values.
+ * Injects invoice data and snapshots fiscal percentages.
+ * This prevents historical invoices from changing if
+ * configuration values (VAT, withholding) are updated after creation.
  */
 function fillInvoiceData(sheet, data, invoiceId) {
   sheet.getRangeByName('INVOICE_ID').setValue(invoiceId);
@@ -170,6 +192,9 @@ function fillInvoiceData(sheet, data, invoiceId) {
   sheet.getRangeByName('IRPF_PERCENT').setValue(data.irpfPercent);
 }
 
+/*
+ * Generates a PDF invoice with the given context and calculated fiscal values.
+ */
 function generateInvoicePdf(context, calculated) {
   const ss = SpreadsheetApp.create('Invoice (preview)');
   const sheet = ss.getActiveSheet();
@@ -179,9 +204,9 @@ function generateInvoicePdf(context, calculated) {
   const lines = calculated.lines;
   const totals = calculated.totals;
 
-  let currentRow = 17; // base amount row
+  let currentRow = FIRST_CONCEPT_ROW; // base amount row
 
-  // Lines
+  // Render concept lines sequentially starting from base row.
   lines.forEach(line => {
     sheet.getRange(`C${currentRow}:F${currentRow}`)
       .setValue(line.description || line.name);
@@ -192,7 +217,7 @@ function generateInvoicePdf(context, calculated) {
     currentRow++;
   });
 
-  // Totales
+  // Render aggregated totals below concept lines.
   sheet.getRange(`F${currentRow + 1}`).setValue("Base total");
   sheet.getRange(`G${currentRow + 1}`).setValue(totals.base);
 
@@ -204,4 +229,18 @@ function generateInvoicePdf(context, calculated) {
 
   sheet.getRange(`F${currentRow + 4}`).setValue("TOTAL");
   sheet.getRange(`G${currentRow + 4}`).setValue(totals.grandTotal);
+
+  protectSheet(sheet);
+}
+
+function protectSheet(sheet) {
+  const protection = sheet.protect().setDescription('Invoiced locked after generation');
+  
+  // Only the owner can edit the invoice after generation, to prevent accidental changes to fiscal formulas.
+  const me = sessionStorage.getEffectiveUser();
+  protection.addEditor(me);
+  protection.removeEditors(protection.getEditors());
+  if (protection.canDomainEdit()) {
+    protection.setDomainEdit(false);
+  }
 }

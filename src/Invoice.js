@@ -1,6 +1,7 @@
 function createInvoiceFromPanel() {
   const data = readBillingPanel();
-  const invoiceId = buildInvoiceIdentifier(data.invoiceDate);
+  const year = getInvoiceYear(data.invoiceDate);
+  const invoiceId = getNextInvoiceId(year);
   
   const spreadsheet = SpreadsheetApp.create('Invoice (preview)');
   const sheet = spreadsheet.getActiveSheet();

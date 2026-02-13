@@ -42,15 +42,21 @@ function getNextInvoiceOrdinalForYear(year) {
     }
 }
 
-function buildInvoiceIdentifier(invoiceDate) {
-    const year = getInvoiceYear(invoiceDate);
-    const ordinal = getNextInvoiceOrdinalForYear(year);
+function getNextInvoiceId(year) {
+  const props = PropertiesService.getScriptProperties();
+  const key = `INVOICE_COUNTER_${year}`;
 
-    return `${ordinal}-${year}`;
+  const current = Number(props.getProperty(key)) || 0;
+  const next = current + 1;
+
+  props.setProperty(key, next);
+
+  return `${next}-${year}`;
 }
 
-function debugInvoiceIdentifier() {
-    const fakeDate = new Date('2026-01-15');
-    const id = buildInvoiceIdentifier(fakeDate);
-    Logger.log(`Generated invoice ID: ${id}`);
+function debugNextInvoiceId() {
+  const fakeDate = new Date('2026-01-15');
+  const year = getInvoiceYear(fakeDate);
+  const id = getNextInvoiceId(year);
+  Logger.log(`Generated invoice ID: ${id}`);
 }
