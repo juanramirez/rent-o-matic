@@ -171,9 +171,38 @@ function fillInvoiceData(sheet, data, invoiceId) {
 }
 
 function generateInvoicePdf(context, calculated) {
+  const ss = SpreadsheetApp.create('Invoice (preview)');
+  const sheet = ss.getActiveSheet();
+
+  setupInvoiceLayout(sheet);
+
   const lines = calculated.lines;
   const totals = calculated.totals;
 
-  // pintar líneas
-  // pintar totales
+  let currentRow = 17; // base amount row
+
+  // Lines
+  lines.forEach(line => {
+    sheet.getRange(`C${currentRow}:F${currentRow}`)
+      .merge()
+      .setValue(line.description || line.name);
+
+    sheet.getRange(`G${currentRow}`)
+      .setValue(line.base);
+
+    currentRow++;
+  });
+
+  // Totales
+  sheet.getRange(`F${currentRow + 1}`).setValue("Base total");
+  sheet.getRange(`G${currentRow + 1}`).setValue(totals.base);
+
+  sheet.getRange(`F${currentRow + 2}`).setValue("IVA");
+  sheet.getRange(`G${currentRow + 2}`).setValue(totals.vat);
+
+  sheet.getRange(`F${currentRow + 3}`).setValue("Retención");
+  sheet.getRange(`G${currentRow + 3}`).setValue(totals.withholding);
+
+  sheet.getRange(`F${currentRow + 4}`).setValue("TOTAL");
+  sheet.getRange(`G${currentRow + 4}`).setValue(totals.grandTotal);
 }

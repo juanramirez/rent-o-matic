@@ -161,3 +161,56 @@ function testExtractTenantId() {
 
   Logger.log("✓ testExtractTenantId OK");
 }
+
+function testGenerateInvoicePreview() {
+  withMockedTaxes(0.21, 0.19, () => {
+
+    const context = {
+      tenantId: 1,
+      tenantShortName: "Test",
+      tenantFiscalName: "Test S.L.",
+      tenantTaxId: "B12345678",
+      tenantAddress: "Calle Falsa 123",
+      invoiceDate: new Date(2026, 1, 1),
+      periodLabel: "Febrero de 2026",
+      concepts: [
+        {
+          name: "Arrendamiento",
+          description: "Alquiler local",
+          amount: 1000,
+          appliesVat: true,
+          appliesWithholding: true,
+          vatRate: null,
+          withholdingRate: null
+        },
+        {
+          name: "Extra",
+          description: "Gastos varios",
+          amount: 100,
+          appliesVat: true,
+          appliesWithholding: false,
+          vatRate: null,
+          withholdingRate: null
+        }
+      ]
+    };
+
+    const calculated = calculateInvoiceTotals(context);
+
+    generateInvoicePdf(context, calculated);
+  });
+
+  Logger.log("✓ testGenerateInvoicePreview OK");
+}
+
+function runAllTests() {
+  testCalculateInvoiceTotals_basic();
+  testCalculateInvoiceTotals_noWithholding();
+  testCalculateInvoiceTotals_rounding();
+  testCalculateInvoiceTotals_multipleConcepts();
+  testBuildInvoiceDate();
+  testBuildPeriodLabel();
+  testExtractTenantId();
+  
+  Logger.log("🚀 ALL TESTS OK");
+}
