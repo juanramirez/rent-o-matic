@@ -1,0 +1,107 @@
+diff --git a/.gitignore b/.gitignore
+index e06e6fd..97f6d8c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,4 @@
+ .clasp.json
++Config.js
+ node_modules/
+ npm-debug.log
+diff --git a/src/Drive.js b/src/Drive.js
+index e27810e..e04dfa3 100644
+--- a/src/Drive.js
++++ b/src/Drive.js
+@@ -1,24 +1,36 @@
+ import { CONFIG } from './Config';
+ 
+-function getTenantFolder(tenantId) {
++/**
++ * Returns the Drive folder for a tenant.
++ * Creates it if it does not exist.
++ *
++ * Folder name format: "001 ACME Corp"
++ */
++export function getTenantFolder(tenantId, shortName) {
+   const root = DriveApp.getFolderById(CONFIG.INVOICES_FOLDER_ID);
+-  const prefix = String(tenantId).padStart(3, "0") + " ";
+-
+-  const folders = root.getFolders();
+-  while (folders.hasNext()) {
+-    const folder = folders.next();
+-    if (folder.getName().startsWith(prefix)) {
+-      return folder;
+-    }
++
++  const prefix = String(tenantId).padStart(3, '0');
++  const folderName = `${prefix} ${shortName}`;
++
++  const folders = root.getFoldersByName(folderName);
++
++  if (folders.hasNext()) {
++    return folders.next();
+   }
+ 
+-  throw new Error(`Carpeta no encontrada para ${prefix}`);
++  // Folder does not exist → create it
++  return root.createFolder(folderName);
+ }
+ 
+-function createInvoiceFromTemplate({ invoiceName, tenantId }) {
+-  const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
+-  const folder = getTenantFolder(tenantId);
++/**
++ * Creates a new invoice spreadsheet from the template
++ * inside the tenant folder.
++ */
++export function createInvoiceFromTemplate({ invoiceName, tenantId, shortName }) {
++  const template = DriveApp.getFileById(CONFIG.INVOICE_TEMPLATE_ID);
++  const tenantFolder = getTenantFolder(tenantId, shortName);
+ 
+-  const file = template.makeCopy(invoiceName, folder);
++  const file = template.makeCopy(invoiceName, tenantFolder);
+   return SpreadsheetApp.openById(file.getId());
+ }
++
+diff --git a/src/Invoice.js b/src/Invoice.js
+index aa97fbf..34b16ae 100644
+--- a/src/Invoice.js
++++ b/src/Invoice.js
+@@ -1,4 +1,8 @@
+-// Invoice.gs
++import { createInvoiceFromTemplate } from './Drive';
++import { getDefaultVat } from './Taxes';
++import { getTenantShortNameById } from './Tenants';
++import { monthToNumber } from './Utils';
++
+ function generateInvoice() {
+   const panel = getMainPanelSheet();
+   const ss = getPanelSpreadsheet();
+@@ -30,8 +34,17 @@ function generateInvoice() {
+   const headers = tenantData[0];
+   const idxId = headers.indexOf("ID");
+   const idxBase = headers.indexOf("Base (€)");
++  const idxShortName = headers.indexOf("Short Name");
++
++  const tenantRow = tenantData.find(
++    r => Number(r[idxId]) === tenantId
++  );
++
++  if (!tenantRow) {
++    SpreadsheetApp.getUi().alert("No se ha encontrado el inquilino.");
++    return;
++  }
+ 
+-  const tenantRow = tenantData.find(r => Number(r[idxId]) === tenantId);
+   const baseAmount = Number(tenantRow[idxBase]) || 0;
+ 
+   // extras
+@@ -54,7 +67,8 @@ function generateInvoice() {
+   const invoiceName = `${shortName} ${year}-${monthToNumber(month)}`;
+   const invoiceSpreadsheet = createInvoiceFromTemplate({
+     invoiceName,
+-    tenantId
++    tenantId,
++    shortName
+   });
+ 
+   const url = invoiceSpreadsheet.getUrl();

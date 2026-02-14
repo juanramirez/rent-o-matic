@@ -1,3 +1,22 @@
+function withMockedProperties(fn) {
+  const original = getScriptProperties_;
+
+  const fakeStore = {};
+
+  getScriptProperties_ = () => ({
+    getProperty: key => fakeStore[key] || null,
+    setProperty: (key, value) => {
+      fakeStore[key] = value;
+    }
+  });
+
+  try {
+    return fn();
+  } finally {
+    getScriptProperties_ = original;
+  }
+}
+
 function withMockedTaxes(vat, withholding, fn) {
   const originalVat = getDefaultVat;
   const originalWithholding = getDefaultWithholding;
@@ -11,6 +30,36 @@ function withMockedTaxes(vat, withholding, fn) {
     getDefaultVat = originalVat;
     getDefaultWithholding = originalWithholding;
   }
+}
+
+function testInvoiceNumbering_basic() {
+  withMockedProperties(() => {
+    const year = 2026;
+
+    const id1 = getNextInvoiceId(year);
+    const id2 = getNextInvoiceId(year);
+    const id3 = getNextInvoiceId(year);
+
+    if (id1 !== '1-2026') throw new Error('Primer ID incorrecto: ' + id1);
+    if (id2 !== '2-2026') throw new Error('Segundo ID incorrecto: ' + id2);
+    if (id3 !== '3-2026') throw new Error('Tercer ID incorrecto: ' + id3);
+
+    Logger.log("✓ testInvoiceNumbering_basic OK");
+  });
+}
+
+function testInvoiceNumbering_newYear() {
+  withMockedProperties(() => {
+    const id1 = getNextInvoiceId(2026);
+    const id2 = getNextInvoiceId(2026);
+    const id3 = getNextInvoiceId(2027);
+
+    if (id1 !== '1-2026') throw new Error('Primer ID de 2026 incorrecto: ' + id1);
+    if (id2 !== '2-2026') throw new Error('Segundo ID de 2026 incorrecto: ' + id2);
+    if (id3 !== '1-2027') throw new Error('Primer ID de 2027 incorrecto: ' + id3);
+
+    Logger.log("✓ testInvoiceNumbering_newYear OK");
+  });
 }
 
 function testCalculateInvoiceTotals_basic() {
@@ -203,7 +252,41 @@ function testGenerateInvoicePreview() {
   Logger.log("✓ testGenerateInvoicePreview OK");
 }
 
+function testInvoiceAlreadyExists_true() {
+  const fakeFolder = {
+    getFilesByName: name => ({
+      hasNext: () => true
+    })
+  };
+
+  const result = invoiceAlreadyExists("any-name", fakeFolder);
+
+  if (result !== true) {
+    throw new Error("It should have found the file.");
+  }
+
+  Logger.log("✓ testInvoiceAlreadyExists_true OK");
+}
+
+function testInvoiceAlreadyExists_false() {
+  const fakeFolder = {
+    getFilesByName: name => ({
+      hasNext: () => false
+    })
+  };
+  
+  const result = invoiceAlreadyExists("any-name", fakeFolder);
+
+  if (result !== false) {
+    throw new Error("It should not have found the file.");
+  }
+
+  Logger.log("✓ testInvoiceAlreadyExists_false OK");
+}
+
 function runAllTests() {
+  testInvoiceNumbering_basic();
+  testInvoiceNumbering_newYear();
   testCalculateInvoiceTotals_basic();
   testCalculateInvoiceTotals_noWithholding();
   testCalculateInvoiceTotals_rounding();
@@ -211,6 +294,8 @@ function runAllTests() {
   testBuildInvoiceDate();
   testBuildPeriodLabel();
   testExtractTenantId();
-  
+  testGenerateInvoicePreview();
+  testInvoiceAlreadyExists_true();
+  testInvoiceAlreadyExists_false();
   Logger.log("🚀 ALL TESTS OK");
 }

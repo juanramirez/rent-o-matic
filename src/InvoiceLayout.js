@@ -195,7 +195,7 @@ function fillInvoiceData(sheet, data, invoiceId) {
 /*
  * Generates a PDF invoice with the given context and calculated fiscal values.
  */
-function generateInvoicePdf(context, calculated) {
+function generateInvoicePdf(context, calculated, invoiceId) {
   const ss = SpreadsheetApp.create('Invoice (preview)');
   const sheet = ss.getActiveSheet();
 
@@ -206,6 +206,9 @@ function generateInvoicePdf(context, calculated) {
 
   let currentRow = FIRST_CONCEPT_ROW; // base amount row
 
+  // Write invoice id to the sheet so it can be included in the PDF filename when exporting.
+  sheet.getRangeByName('INVOICE_ID').setValue(invoiceId);
+  
   // Render concept lines sequentially starting from base row.
   lines.forEach(line => {
     sheet.getRange(`C${currentRow}:F${currentRow}`)

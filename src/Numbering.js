@@ -18,6 +18,10 @@
 
 const INVOICE_COUNT_PREFIX = 'INVOICE_COUNT_';
 
+function getScriptProperties_() {
+    return PropertiesService.getScriptProperties();
+}
+
 function getInvoiceYear(invoiceDate) {
     return invoiceDate.getFullYear();
 }
@@ -43,7 +47,7 @@ function getNextInvoiceOrdinalForYear(year) {
 }
 
 function getNextInvoiceId(year) {
-  const props = PropertiesService.getScriptProperties();
+  const props = getScriptProperties_();
   const key = `INVOICE_COUNTER_${year}`;
 
   const current = Number(props.getProperty(key)) || 0;
