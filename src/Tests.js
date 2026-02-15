@@ -290,8 +290,15 @@ function testInvoiceIdNotIncrementedOnFailure() {
   const originalGenerateInvoiceSpreadsheet = generateInvoiceSpreadsheet;
   const originalMoveFileToFolder_ = moveFileToFolder_;
   const originalGetTenantFolder = getTenantFolder;
+  const originalReadBillingContext = readBillingContext;
 
   try {
+    readBillingContext = () => ({
+      tenantId: 1,
+      tenantShortName: "Test",
+      invoiceDate: new Date(year, 0, 1), // Jan 1, 2026
+      concepts: []
+    });
     getTenantFolder = () => ({
       getFiles: function() {
         return {
