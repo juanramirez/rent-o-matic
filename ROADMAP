@@ -1,5 +1,16 @@
-- Extract panel structure into code (PanelBuilder). -
+v1
+
+- Extract hardcoded layout labels to config.
 - Add fiscal identifier to invoice layout.
+- Enforce idempotent invoice generation (tenant id + period)
+- Add integration tests (Drive + numbering + duplicate prevention).
 - Extract tenant list to a JSON.
+- Introduce Application layer (InvoiceService).
 - Localization (i18n).
-- Tests
+- Extract panel structure into code (PanelBuilder). -
+- Isolate invoice numbering as pure domain service.
+
+v2
+
+- Interface revamp (invoice frame in spreadsheet), 
+  dropboxes above.

@@ -6,8 +6,18 @@ function createInvoice() {
   // 1️⃣ Read billing context from panel
   const context = readBillingContext();
 
+  const year = context.invoiceDate.getFullYear();
+  const month = context.invoiceDate.getMonth() + 1;
+
+  // Domain rule: only one invoice per tenant and period
+  if (invoiceExistsForPeriod(context.tenantId, context.year, context.month)) {
+    throw new Error(`Invoice already exists for tenant ${context.tenantId} for ${context.year}-${context.month}. Aborting to prevent duplicates.`);
+  }
+
   // 2️⃣ Calculate fiscal totals
   const calculated = calculateInvoiceTotals(context);
+
+  const invoiceId = getNextInvoiceId(context.invoiceDate.getFullYear());
 
   // 3️⃣ Render spreadsheet
   const ss = generateInvoiceSpreadsheet(context, calculated, invoiceId);
