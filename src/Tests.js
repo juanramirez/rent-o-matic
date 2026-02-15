@@ -292,7 +292,14 @@ function testInvoiceIdNotIncrementedOnFailure() {
   const originalGetTenantFolder = getTenantFolder;
 
   try {
-    getTenantFolder = () => ({}); // Dummy folder, it won't be used because generation will fail
+    getTenantFolder = () => ({
+      getFiles: function() {
+        return {
+          hasNext: function() { return false; },
+          next: function() { return null; }
+        };
+      }
+    });
     moveFileToFolder_ = () => {}; // Skip actual file operations
     generateInvoiceSpreadsheet = () => ({ getId: () => 'dummy-id' }); // Dummy spreadsheet
     generateInvoicePdf = () => { throw new Error("Simulated generation failure"); }
