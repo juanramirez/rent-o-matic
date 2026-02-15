@@ -251,9 +251,10 @@ function testGenerateInvoicePreview() {
 }
 
 function testInvoiceAlreadyExistsForPeriod_true() {
+  const fakeTenantName = "Tenant Smith";
   const fakeFiles = [
-    { getName: () => 'Tenant1 2026-02' },
-    { getName: () => 'Tenant1 2026-01' }
+    { getName: () => `${fakeTenantName} 2026-02` },
+    { getName: () => `${fakeTenantName} 2026-01` }
   ];
 
   const fakeFolder = {
@@ -269,7 +270,7 @@ function testInvoiceAlreadyExistsForPeriod_true() {
   try {
     getTenantFolder = () => fakeFolder;
 
-    const exists = invoiceExistsForPeriod(1, 2026, 2);
+    const exists = invoiceExistsForPeriod(1, fakeTenantName, 2026, 2);
 
     if (exists !== true) {
       throw new Error("It should have found the existing invoice.");
