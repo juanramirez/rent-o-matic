@@ -89,6 +89,9 @@ Those values are environment-specific and must be provided per deployment.
 
 ## 📦 Status
 
+🚧 Actively developed  
+📍 See the [Roadmap](./ROADMAP.md) for upcoming features and priorities.
+
 This is a **working, real-life tool**, not a polished SaaS product.
 The focus is on clarity, maintainability and correctness rather than feature breadth.
 
