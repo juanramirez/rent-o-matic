@@ -6,8 +6,11 @@ function createInvoice() {
   // 1️⃣ Read billing context from panel
   const context = readBillingContext();
 
+  const year = context.invoiceDate.getFullYear();
+  const month = context.invoiceDate.getMonth() + 1;
+
   // Domain rule: only one invoice per tenant and period
-  if (invoiceExistsForPeriod(context.tenantId, context.tenantShortName, context.year, context.month)) {
+  if (invoiceExistsForPeriod(context.tenantId, context.tenantShortName, year, month)) {
     throw new Error(`Invoice already exists for tenant ${context.tenantId} for ${context.year}-${context.month}. Aborting to prevent duplicates.`);
   }
 
