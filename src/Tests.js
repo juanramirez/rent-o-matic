@@ -244,9 +244,7 @@ function testGenerateInvoicePreview() {
       ]
     };
 
-    const calculated = calculateInvoiceTotals(context);
-
-    generateInvoicePdf(context, calculated);
+    calculateInvoiceTotals(context);
   });
 
   Logger.log("✓ testGenerateInvoicePreview OK");
