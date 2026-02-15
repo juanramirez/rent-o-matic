@@ -10,14 +10,14 @@ function createInvoice() {
   const month = context.invoiceDate.getMonth() + 1;
 
   // Domain rule: only one invoice per tenant and period
-  if (invoiceExistsForPeriod(context.tenantId, context.year, context.month)) {
+  if (invoiceExistsForPeriod(context.tenantId, context.tenantShortName, context.year, context.month)) {
     throw new Error(`Invoice already exists for tenant ${context.tenantId} for ${context.year}-${context.month}. Aborting to prevent duplicates.`);
   }
 
   // 2️⃣ Calculate fiscal totals
   const calculated = calculateInvoiceTotals(context);
 
-  const invoiceId = getNextInvoiceId(context.invoiceDate.getFullYear());
+  const invoiceId = peekNextInvoiceId(context.invoiceDate.getFullYear());
 
   // 3️⃣ Render spreadsheet
   const ss = generateInvoiceSpreadsheet(context, calculated, invoiceId);
@@ -35,14 +35,13 @@ function createInvoice() {
     throw new Error(`Invoice file "${fileName}" already exists in Drive folder "${tenantFolder.getName()}". Aborting to prevent duplicates.`);
   }
 
-  // 6️⃣ Generate official invoice ID (N-YYYY, only if safe)
-  const year = context.invoiceDate.getFullYear();
-  const invoiceId = getNextInvoiceId(year);
-
   moveFileToFolder_(ss, fileName, tenantFolder);
 
   // 7️⃣ Generate PDF copy
   generatePdfCopy_(ss, fileName, tenantFolder);
+
+  // 8️⃣ Update invoice numbering to finish transaction.
+  commitInvoiceId(context.invoiceDate.getFullYear());
 
   Logger.log(`Invoice ${invoiceId} generated successfully`);
 }

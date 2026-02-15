@@ -1,3 +1,16 @@
+function listTenantInvoiceFileNames(tenantId, shortName) {
+  const folder = getTenantFolder(tenantId, shortName);
+  const files = folder.getFiles();
+  const fileNames = [];
+
+  while (files.hasNext()) {
+    const file = files.next();
+    fileNames.push(file.getName());
+  }
+
+  return fileNames;
+}
+
 /**
  * Returns the Drive folder for a tenant.
  * Creates it if it does not exist.
@@ -32,21 +45,9 @@ function createInvoiceFromTemplate({ invoiceName, tenantId, shortName }) {
   return SpreadsheetApp.openById(file.getId());
 }
 
-function invoiceExistsForPeriod(tenantId, year, month) {
-  const tenant = readTenantById_(tenantId);
-  const folder = getTenantFolder(tenantId, tenant.shortName);
-
+function invoiceExistsForPeriod(tenantId, shortName, year, month) {
   const prefix = `${year}-${String(month).padStart(2, '0')}`;
-  const files = folder.getFiles();
+  const fileNames = listTenantInvoiceFileNames(tenantId, shortName);
 
-  while (files.hasNext()) {
-    const file = files.next();
-    const name = file.getName();
-
-    if (name.includes(prefix)) {
-      return true;
-    }
-  }
-
-  return false;
+  return fileNames.some(name => name.includes(prefix));
 }

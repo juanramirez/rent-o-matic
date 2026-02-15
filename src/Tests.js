@@ -36,9 +36,9 @@ function testInvoiceNumbering_basic() {
   withMockedProperties(() => {
     const year = 2026;
 
-    const id1 = getNextInvoiceId(year);
-    const id2 = getNextInvoiceId(year);
-    const id3 = getNextInvoiceId(year);
+    const id1 = peekNextInvoiceId(year);
+    const id2 = peekNextInvoiceId(year);
+    const id3 = peekNextInvoiceId(year);
 
     if (id1 !== '1-2026') throw new Error('Primer ID incorrecto: ' + id1);
     if (id2 !== '2-2026') throw new Error('Segundo ID incorrecto: ' + id2);
@@ -50,9 +50,9 @@ function testInvoiceNumbering_basic() {
 
 function testInvoiceNumbering_newYear() {
   withMockedProperties(() => {
-    const id1 = getNextInvoiceId(2026);
-    const id2 = getNextInvoiceId(2026);
-    const id3 = getNextInvoiceId(2027);
+    const id1 = peekNextInvoiceId(2026);
+    const id2 = peekNextInvoiceId(2026);
+    const id3 = peekNextInvoiceId(2027);
 
     if (id1 !== '1-2026') throw new Error('Primer ID de 2026 incorrecto: ' + id1);
     if (id2 !== '2-2026') throw new Error('Segundo ID de 2026 incorrecto: ' + id2);
@@ -283,6 +283,61 @@ function testInvoiceAlreadyExistsForPeriod_true() {
   Logger.log("✓ testInvoiceAlreadyExistsForPeriod_true OK");
 }
 
+function testInvoiceIdNotIncrementedOnFailure() {
+  const year = 2026;
+
+  const originalCommit = commitInvoiceId;
+  const originalGenerate = generateInvoicePdf;
+
+  try {
+    // Generation error simulation
+    generateInvoicePdf = () => {
+      throw new Error("Simulated generation failure");
+    };
+
+    // We expect an error to be thrown
+    let errorThrown = false;
+    try {
+      createInvoice();
+    } catch (e) {
+      errorThrown = true;
+      if (e.message !== "Simulated generation failure") {
+        throw new Error("Unexpected error message: " + e.message);
+      }
+    }
+
+    const after = peekNextInvoiceId(year);
+
+    if (before !== after) {
+      throw new Error(`Invoice ID was incremented despite failure. Before: ${before}, After: ${after}`);
+    }
+  } finally {
+    commitInvoiceId = originalCommit;
+    generateInvoicePdf = originalGenerate;
+  }
+
+  Logger.log("✓ testInvoiceIdNotIncrementedOnFailure OK");
+}
+
+function testInvoiceExistsForPeriod_detectsDuplicate() {
+  const originalList = listTenantInvoiceFileNames;
+
+  try {
+    listTenantInvoiceFileNames = () => [
+      'Inquilino Martínez 2026-02',
+      'Inquilino Martínez 2026-01'
+    ];
+
+    const exists = invoiceExistsForPeriod(1, 'Inquilino Martínez', 2026, 2);
+
+    if (!exists) {
+      throw new Error("Duplicate not detected");
+    }
+  } finally {
+    listTenantInvoiceFileNames = originalList;
+  }
+}
+
 function testInvoiceAlreadyExists_true() {
   const fakeFolder = {
     getFilesByName: name => ({
@@ -326,6 +381,9 @@ function runAllTests() {
   testBuildPeriodLabel();
   testExtractTenantId();
   testGenerateInvoicePreview();
+  testInvoiceAlreadyExistsForPeriod_true();
+  testInvoiceIdNotIncrementedOnFailure();
+  testInvoiceExistsForPeriod_detectsDuplicate();
   testInvoiceAlreadyExists_true();
   testInvoiceAlreadyExists_false();
   Logger.log("🚀 ALL TESTS OK");

@@ -46,7 +46,7 @@ function getNextInvoiceOrdinalForYear(year) {
     }
 }
 
-function getNextInvoiceId(year) {
+function peekNextInvoiceId(year) {
   const props = getScriptProperties_();
   const key = `INVOICE_COUNTER_${year}`;
 
@@ -58,9 +58,17 @@ function getNextInvoiceId(year) {
   return `${next}-${year}`;
 }
 
+function commitInvoiceId(year) {
+    const props = getScriptProperties_();
+    const key = `INVOICE_COUNTER_${year}`;
+
+    const current = Number(props.getProperty(key)) || 0;
+    props.setProperty(key, String(current + 1));
+}
+
 function debugNextInvoiceId() {
   const fakeDate = new Date('2026-01-15');
   const year = getInvoiceYear(fakeDate);
-  const id = getNextInvoiceId(year);
+  const id = peekNextInvoiceId(year);
   Logger.log(`Generated invoice ID: ${id}`);
 }
