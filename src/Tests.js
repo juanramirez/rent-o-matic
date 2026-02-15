@@ -296,7 +296,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
     readBillingContext = () => ({
       tenantId: 1,
       tenantShortName: "Test",
-      invoiceDate: new Date(year, 0, 1), // Jan 1, 2026
+      invoiceDate: new Date(year, 1, 1), // Feb 1, 2026
       concepts: []
     });
     getTenantFolder = () => ({
@@ -339,6 +339,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
     generateInvoiceSpreadsheet = originalGenerateInvoiceSpreadsheet;
     moveFileToFolder_ = originalMoveFileToFolder_;
     getTenantFolder = originalGetTenantFolder;
+    readBillingContext = originalReadBillingContext;
   }
 
   Logger.log("✓ testInvoiceIdNotIncrementedOnFailure OK");
