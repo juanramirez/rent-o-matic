@@ -6,9 +6,6 @@ function createInvoice() {
   // 1️⃣ Read billing context from panel
   const context = readBillingContext();
 
-  const year = context.invoiceDate.getFullYear();
-  const month = context.invoiceDate.getMonth() + 1;
-
   // Domain rule: only one invoice per tenant and period
   if (invoiceExistsForPeriod(context.tenantId, context.tenantShortName, context.year, context.month)) {
     throw new Error(`Invoice already exists for tenant ${context.tenantId} for ${context.year}-${context.month}. Aborting to prevent duplicates.`);
@@ -38,7 +35,7 @@ function createInvoice() {
   moveFileToFolder_(ss, fileName, tenantFolder);
 
   // 7️⃣ Generate PDF copy
-  generatePdfCopy_(ss, fileName, tenantFolder);
+  generateInvoicePdf(context, calculated);
 
   // 8️⃣ Update invoice numbering to finish transaction.
   commitInvoiceId(context.invoiceDate.getFullYear());
@@ -84,6 +81,15 @@ function generateInvoiceSpreadsheet(context, calculated, invoiceId) {
   renderConceptLines(sheet, calculated);
 
   return ss;
+}
+
+function generateInvoicePdf(context, calculated) {
+  const invoiceId = peekNextInvoiceId(context.invoiceDate.getFullYear());
+  const ss = generateInvoiceSpreadsheet(context, calculated, invoiceId);
+  const fileName = buildFileName_(context);
+  const tenantFolder = getTenantFolder(context.tenantId, context.tenantShortName);
+
+  generatePdfCopy_(ss, fileName, tenantFolder);
 }
 
 
