@@ -286,9 +286,18 @@ function testInvoiceIdNotIncrementedOnFailure() {
   const year = 2026;
 
   const originalCommit = commitInvoiceId;
-  const originalGenerate = generateInvoicePdf;
+  const originalGenerateInvoicePdf = generateInvoicePdf;
+  const originalGenerateInvoiceSpreadsheet = generateInvoiceSpreadsheet;
+  const originalMoveFileToFolder_ = moveFileToFolder_;
+  const originalGetTenantFolder = getTenantFolder;
 
   try {
+    getTenantFolder = () => ({}); // Dummy folder, it won't be used because generation will fail
+    moveFileToFolder_ = () => {}; // Skip actual file operations
+    generateInvoiceSpreadsheet = () => ({ getId: () => 'dummy-id' }); // Dummy spreadsheet
+    generateInvoicePdf = () => { throw new Error("Simulated generation failure"); }
+
+    const before = peekNextInvoiceId(year);
     // Generation error simulation
     generateInvoicePdf = () => {
       throw new Error("Simulated generation failure");
@@ -312,7 +321,10 @@ function testInvoiceIdNotIncrementedOnFailure() {
     }
   } finally {
     commitInvoiceId = originalCommit;
-    generateInvoicePdf = originalGenerate;
+    generateInvoicePdf = originalGenerateInvoicePdf;
+    generateInvoiceSpreadsheet = originalGenerateInvoiceSpreadsheet;
+    moveFileToFolder_ = originalMoveFileToFolder_;
+    getTenantFolder = originalGetTenantFolder;
   }
 
   Logger.log("✓ testInvoiceIdNotIncrementedOnFailure OK");
