@@ -260,8 +260,8 @@ function testInvoiceAlreadyExistsForPeriod_true() {
   const fakeFolder = {
     getFiles: () => ({
       index: 0,
-      hasNext: () => this.index < fakeFiles.length,
-      next: () => fakeFiles[this.index++]
+      hasNext: function() { return this.index < fakeFiles.length; },
+      next: function() { return fakeFiles[this.index++]; }
     })
   };
 
