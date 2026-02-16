@@ -282,6 +282,26 @@ function testInvoiceAlreadyExistsForPeriod_true() {
   Logger.log("✓ testInvoiceAlreadyExistsForPeriod_true OK");
 }
 
+function testInvoiceNumbering_basic() {
+  const year = 2026;
+
+  const id1 = peekNextInvoiceId(year);
+  if (id1 !== "1-2026") {
+    throw new Error("Wrong first ID: " + id1);
+  }
+
+  commitInvoiceId(year);
+
+  const id2 = peekNextInvoiceId(year);
+  if (id2 !== "2-2026") {
+    throw new Error("Wrong second ID: " + id2);
+  }
+
+  commitInvoiceId(year);
+
+  Logger.log("✓ testInvoiceNumbering_basic OK");
+}
+
 function testInvoiceIdNotIncrementedOnFailure() {
   const year = 2026;
 
@@ -317,7 +337,10 @@ function testInvoiceIdNotIncrementedOnFailure() {
     invoiceAlreadyExists = () => false; // Assume file doesn't exist to trigger generation
     calculateInvoiceTotals = () => ({}); // Return empty totals for simplicity
 
-    const before = peekNextInvoiceId(year);
+    const props = getScriptProperties();
+    const key = `INVOICE_COUNTER_${year}`;
+    props.deleteProperty(key); // Reset counter for clean test
+    const before = props.getProperty(`INVOICE_COUNTER_${year}`) || '0';
 
     // We expect an error to be thrown
     let errorThrown = false;
@@ -329,8 +352,11 @@ function testInvoiceIdNotIncrementedOnFailure() {
         throw new Error("Unexpected error message: " + e.message);
       }
     }
+    if (!errorThrown) {
+      throw new Error("Expected generation failure, but no error was thrown");
+    }
 
-    const after = peekNextInvoiceId(year);
+    const after = Number(props.getProperty(`INVOICE_COUNTER_${year}`) || '0');
 
     if (before !== after) {
       throw new Error(`Invoice ID was incremented despite failure. Before: ${before}, After: ${after}`);

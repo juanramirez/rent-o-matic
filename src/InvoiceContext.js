@@ -200,17 +200,17 @@ function readBillingContext() {
   const baseAmount = parseEuroNumber_(tenant.baseAmount);
 
   const baseConcept = {
-    name: tenant.invoiceConcept,
-    description: tenant.baseConcept,
-    amount: parseEuroNumber_(tenant.baseAmount),
+    name: baseConceptLabel,
+    description: baseConceptDescription,
+    amount: baseAmount,
     appliesVat: true
   };
 
   concepts = [({
     /* base concept is always first */
-    name: tenant.invoiceConcept,
-    description: tenant.baseConcept,
-    amount: parseEuroNumber_(tenant.baseAmount),
+    name: baseConceptLabel,
+    description: baseConceptDescription,
+    amount: baseAmount,
     appliesVat: true,
     vatRate: null,
     appliesWithholding: false,

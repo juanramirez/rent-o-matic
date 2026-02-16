@@ -16,11 +16,7 @@
     - Handle layout or formatting.
 */
 
-const INVOICE_COUNT_PREFIX = 'INVOICE_COUNT_';
-
-function getScriptProperties_() {
-    return PropertiesService.getScriptProperties();
-}
+const INVOICE_COUNTER_PREFIX = 'INVOICE_COUNT_';
 
 function getInvoiceYear(invoiceDate) {
     return invoiceDate.getFullYear();
@@ -33,7 +29,7 @@ function getNextInvoiceOrdinalForYear(year) {
         lock.waitLock(30000); // wait up to 30 seconds to acquire the lock
     
         const properties = PropertiesService.getScriptProperties();
-        const key = INVOICE_COUNT_PREFIX + year;
+        const key = INVOICE_COUNTER_PREFIX + year;
 
         const currentInvoiceCount = Number(properties.getProperty(key)) || 0;
         const nextCount = currentInvoiceCount + 1;
@@ -47,8 +43,8 @@ function getNextInvoiceOrdinalForYear(year) {
 }
 
 function peekNextInvoiceId(year) {
-  const props = getScriptProperties_();
-  const key = `INVOICE_COUNTER_${year}`;
+  const props = getScriptProperties();
+  const key = `INVOICE_COUNTER_PREFIX_${year}`;
 
   const current = Number(props.getProperty(key)) || 0;
   const next = current + 1;
@@ -57,8 +53,8 @@ function peekNextInvoiceId(year) {
 }
 
 function commitInvoiceId(year) {
-    const props = getScriptProperties_();
-    const key = `INVOICE_COUNTER_${year}`;
+    const props = getScriptProperties();
+    const key = `INVOICE_COUNTER_PREFIX_${year}`;
 
     const current = Number(props.getProperty(key)) || 0;
     props.setProperty(key, String(current + 1));
