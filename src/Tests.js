@@ -291,6 +291,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
   const originalMoveFileToFolder_ = moveFileToFolder_;
   const originalGetTenantFolder = getTenantFolder;
   const originalReadBillingContext = readBillingContext;
+  const originalInvoiceExistsForPeriod = invoiceExistsForPeriod;
 
   try {
     readBillingContext = () => ({
@@ -310,12 +311,9 @@ function testInvoiceIdNotIncrementedOnFailure() {
     generateInvoiceSpreadsheet = () => ({ getId: () => 'dummy-id' }); // Dummy spreadsheet
     moveFileToFolder_ = () => {}; // Skip actual file operations
     generateInvoicePdf = () => { throw new Error("Simulated generation failure"); }
+    invoiceExistsForPeriod = () => false; // Assume no existing invoice to trigger generation
 
     const before = peekNextInvoiceId(year);
-    // Generation error simulation
-    generateInvoicePdf = () => {
-      throw new Error("Simulated generation failure");
-    };
 
     // We expect an error to be thrown
     let errorThrown = false;
@@ -340,7 +338,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
     moveFileToFolder_ = originalMoveFileToFolder_;
     getTenantFolder = originalGetTenantFolder;
     readBillingContext = originalReadBillingContext;
-  }
+    invoiceExistsForPeriod = originalInvoiceExistsForPeriod;
 
   Logger.log("✓ testInvoiceIdNotIncrementedOnFailure OK");
 }
