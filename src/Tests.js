@@ -339,7 +339,8 @@ function testInvoiceIdNotIncrementedOnFailure() {
     getTenantFolder = originalGetTenantFolder;
     readBillingContext = originalReadBillingContext;
     invoiceExistsForPeriod = originalInvoiceExistsForPeriod;
-
+  }
+  
   Logger.log("✓ testInvoiceIdNotIncrementedOnFailure OK");
 }
 
