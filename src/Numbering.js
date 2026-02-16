@@ -53,8 +53,6 @@ function peekNextInvoiceId(year) {
   const current = Number(props.getProperty(key)) || 0;
   const next = current + 1;
 
-  props.setProperty(key, next);
-
   return `${next}-${year}`;
 }
 
