@@ -38,7 +38,12 @@ function createInvoice() {
   moveFileToFolder_(ss, fileName, tenantFolder);
 
   // 7️⃣ Generate PDF copy
-  generateInvoicePdf(context, calculated);
+  try {
+    generateInvoicePdf(context, calculated);
+  } catch (error) {
+    Logger.log(`Error generating PDF for invoice ${invoiceId}: ${error.message}`);
+    throw error; // Rethrow to trigger transaction rollback and prevent invoice ID increment
+  }
 
   // 8️⃣ Update invoice numbering to finish transaction.
   commitInvoiceId(context.invoiceDate.getFullYear());
