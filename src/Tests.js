@@ -292,6 +292,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
   const originalGetTenantFolder = getTenantFolder;
   const originalReadBillingContext = readBillingContext;
   const originalInvoiceExistsForPeriod = invoiceExistsForPeriod;
+  const originalInvoiceAlreadyExists = invoiceAlreadyExists;
   const originalCalculateInvoiceTotals = calculateInvoiceTotals;
 
   try {
@@ -313,6 +314,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
     moveFileToFolder_ = () => {}; // Skip actual file operations
     generateInvoicePdf = () => { throw new Error("Simulated generation failure"); }
     invoiceExistsForPeriod = () => false; // Assume no existing invoice to trigger generation
+    invoiceAlreadyExists = () => false; // Assume file doesn't exist to trigger generation
     calculateInvoiceTotals = () => ({}); // Return empty totals for simplicity
 
     const before = peekNextInvoiceId(year);
@@ -341,6 +343,7 @@ function testInvoiceIdNotIncrementedOnFailure() {
     getTenantFolder = originalGetTenantFolder;
     readBillingContext = originalReadBillingContext;
     invoiceExistsForPeriod = originalInvoiceExistsForPeriod;
+    invoiceAlreadyExists = originalInvoiceAlreadyExists;
     calculateInvoiceTotals = originalCalculateInvoiceTotals;
   }
 
