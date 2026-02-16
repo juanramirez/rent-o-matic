@@ -307,8 +307,8 @@ function testInvoiceIdNotIncrementedOnFailure() {
         };
       }
     });
-    moveFileToFolder_ = () => {}; // Skip actual file operations
     generateInvoiceSpreadsheet = () => ({ getId: () => 'dummy-id' }); // Dummy spreadsheet
+    moveFileToFolder_ = () => {}; // Skip actual file operations
     generateInvoicePdf = () => { throw new Error("Simulated generation failure"); }
 
     const before = peekNextInvoiceId(year);
